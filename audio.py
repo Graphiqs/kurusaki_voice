@@ -302,9 +302,59 @@ async def volume(con,vol:float):
         await bot.send_message(con.message.channel,"No Audio playing at the moment")
     if player_status[con.message.server.id] == True:
         servers_songs[con.message.server.id].volume =vol;
+        
+        
+        
+        
+@bot.command()
+async def invite():
+  	"""Bot Invite"""
+  	await bot.say("\U0001f44d")
+  	await bot.whisper("Add me with this link {}".format(discord.utils.oauth_url(bot.user.id)))
+
+@bot.event
+async def send_cmd_help(ctx):
+    if ctx.invoked_subcommand:
+        pages = bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
+        for page in pages:
+            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
+                               color=discord.Color.blue())
+            await bot.send_message(ctx.message.channel, embed=em)
+    else:
+        pages = bot.formatter.format_help_for(ctx, ctx.command)
+        for page in pages:
+            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
+                               color=discord.Color.blue())
+            await bot.send_message(ctx.message.channel, embed=em)        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 
-
+@bot.command(pass_context=True)
+async def embed(ctx):
+    embed = discord.Embed(title="test", description="my name imran", color=0x00ff00)
+    embed.set_footer(text="this is a footer")
+    embed.set_author(name="Team Ghost")
+    embed.add_field(name="This is a field", value="no it isn't", inline=True)
+    await bot.say(embed=embed)
+    
+    
+    
+    
+    
 
 # if __name__ == "__main__":
 #     for extension in extensions:
