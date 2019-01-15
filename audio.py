@@ -126,7 +126,7 @@ async def queue_songs(con, skip, clear):
         player_status[con.message.server.id] = False
         song_names[con.message.server.id].clear()
 
-    if clear == False:
+    if clear == True:
         if skip == True:
             servers_songs[con.message.server.id].pause()
 
