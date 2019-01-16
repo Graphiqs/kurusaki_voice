@@ -121,12 +121,12 @@ async def on_command_error(con,error):
 
 
 async def queue_songs(con, skip, clear):
-    if clear == False:
+    if clear == True:
         await bot.voice_client_in(con.message.server).disconnect()
         player_status[con.message.server.id] = False
         song_names[con.message.server.id].clear()
 
-    if clear == True:
+    if clear == False:
         if skip == True:
             servers_songs[con.message.server.id].pause()
 
