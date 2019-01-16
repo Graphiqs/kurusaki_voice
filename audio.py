@@ -108,7 +108,7 @@ async def on_voice_state_update(before, after):
                             paused[before.server.id]=False
                             now_playing[before.server.id]=None
                             song_names[before.server.id].clear()
-                            await bot.send_message(discord.Object(id=rq_channel[before.server.id]),"**Kurusaki left because there was no one inside `{}`**".format(before.voice.voice_channel))
+                            await bot.send_message(discord.Object(id=rq_channel[before.server.id]),"**MUZICAL DOCTOR left because there was no one inside `{}`**".format(before.voice.voice_channel))
 
 
 
@@ -121,7 +121,7 @@ async def on_command_error(con,error):
 
 
 async def queue_songs(con, skip, clear):
-    if clear == True:
+    if clear == False:
         await bot.voice_client_in(con.message.server).disconnect()
         player_status[con.message.server.id] = False
         song_names[con.message.server.id].clear()
