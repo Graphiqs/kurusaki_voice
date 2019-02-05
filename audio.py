@@ -50,7 +50,14 @@ def load_opus_lib(opus_libs=OPUS_LIBS):
 
 opts = {
     'default_search': 'auto',
-    'quiet': True
+    'quiet': True,
+    "no_warnings":True,
+    "simulate":True,
+    "nooverwrites":True,
+    "keepvideo":False,
+    "cachedir":False,
+    "noplaylist":True,
+    "prefer_ffmpeg":True
 }  # youtube_dl options
 
 
