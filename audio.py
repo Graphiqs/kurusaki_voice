@@ -6,6 +6,14 @@ from discord.utils import find
 import requests as rq
 import os
 
+
+
+
+
+
+
+youtube_api=''
+
 def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
@@ -81,43 +89,12 @@ async def set_player_status():
 
 
 async def bg():
-    bot.loop.create_task(set_player_status())
+    await set_player_status()
 
 @bot.event
 async def on_ready():
     bot.loop.create_task(bg())
     print(bot.user.name)
-
-
-@bot.event
-async def on_voice_state_update(before, after):
-    if bot.is_voice_connected(before.server) == True: #bot is connected to voice channel in the server
-        # if before.voice.voice_channel == None:
-        #     pass
-        if before.voice.voice_channel != None: #user in voice channel
-
-            if after.voice.voice_channel!= None and after.voice.voice_channel.id == bot.voice_client_in(before.server).channel.id:
-                if player_status[before.server.id]==True:
-                    if paused[before.server.id]==True:
-                        servers_songs[before.server.id].resume()
-                        paused[before.server.id]=False
-
-            if before.voice.voice_channel.id == bot.voice_client_in(before.server).channel.id: # user left the voice channel detected
-                if len(bot.voice_client_in(before.server).channel.voice_members) <= 1: #there is only bot in voice channel
-                    if player_status[before.server.id]==True:
-                        servers_songs[before.server.id].pause()
-                        paused[before.server.id]=True
-                        await asyncio.sleep(10)
-                        if len(bot.voice_client_in(before.server).channel.voice_members) <= 1:
-                            await bot.voice_client_in(before.server).disconnect()
-                            servers_songs[before.server.id]=None
-                            player_status[before.server.id]=False
-                            paused[before.server.id]=False
-                            now_playing[before.server.id]=None
-                            song_names[before.server.id].clear()
-                            await bot.send_message(discord.Object(id=rq_channel[before.server.id]),"**MUZICAL DOCTOR left because there was no one inside `{}`**".format(before.voice.voice_channel))
-
-
 
 
 
