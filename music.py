@@ -18,19 +18,18 @@ def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
 
     # Notice how you can use spaces in prefixes. Try to keep them simple though.
-    prefixes = ['m.', 'y.']
+    prefixes = ['a.', 's.']
 
-    me=['nep.','k.','saki.','m.','y.']
+    me=['nep.','k.','saki.','a.','s.']
 
-    if msg.author.id == '455500545587675156':
+    if msg.author.id == '123123123123':
         return commands.when_mentioned_or(*me)(bot, msg)
 
 
     return commands.when_mentioned_or(*prefixes)(bot, msg)
 
 
-bot = commands.Bot(command_prefix=get_prefix,description='A simple and easy to use Bot')
-
+bot = commands.Bot(command_prefix=get_prefix,description='A music bot fro discord Kurusaki')
 
 
 # extensions=['server_songs']
@@ -54,7 +53,6 @@ def load_opus_lib(opus_libs=OPUS_LIBS):
 
     raise RuntimeError('Could not load an opus lib. Tried %s' %
                        (', '.join(opus_libs)))
-
 
 opts = {
     'default_search': 'auto',
@@ -93,7 +91,7 @@ async def bg():
 
 @bot.event
 async def on_ready():
-    bot.loop.create_task(bg())
+    await bg()
     print(bot.user.name)
 
 
@@ -118,15 +116,14 @@ async def queue_songs(con, skip, clear):
             servers_songs[con.message.server.id] = None
 
         if len(song_names[con.message.server.id]) != 0:
-            r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key=AIzaSyDy4gizNmXYWykfUACzU_RsaHtKVvuZb9k'.format(
-                song_names[con.message.server.id][0])).json()
+            r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key={}'.format(song_names[con.message.server.id][0]),youtube_api).json()
             pack = discord.Embed(title=r['items'][0]['snippet']['title'],
                                  url="https://www.youtube.com/watch?v={}".format(r['items'][0]['id']['videoId']))
             pack.set_thumbnail(url=r['items'][0]['snippet']
                                ['thumbnails']['default']['url'])
             pack.add_field(name="Requested by:", value=con.message.author.name)
 
-            song = await bot.voice_client_in(con.message.server).create_ytdl_player(song_names[con.message.server.id][0], ytdl_options=opts, after=lambda: bot.loop.create_task(after_song(con, False, False)))
+            song = await bot.voice_client_in(con.message.server).create_ytdl_player(song_names[con.message.server.id][0], ytdl_options=opts, after=lambda: await after_song(con, False, False))
             servers_songs[con.message.server.id] = song
             servers_songs[con.message.server.id].start()
             await bot.delete_message(now_playing[con.message.server.id])
@@ -141,7 +138,7 @@ async def queue_songs(con, skip, clear):
 
 
 async def after_song(con, skip, clear):
-    bot.loop.create_task(queue_songs(con, skip, clear))
+    await queue_songs(con, skip, clear)
 
 
 @bot.command(pass_context=True)
@@ -158,16 +155,16 @@ async def play(con, *, url):
         if bot.is_voice_connected(con.message.server) == True:
             if player_status[con.message.server.id] == True:
                 song_names[con.message.server.id].append(url)
-                r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key=put your youtube token here'.format(url)).json()
+                r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key={}'.format(url,youtube_api)).json()
                 await bot.send_message(con.message.channel, "**Song `{}` Queued**".format(r['items'][0]['snippet']['title']))
 
             if player_status[con.message.server.id] == False:
                 player_status[con.message.server.id] = True
                 song_names[con.message.server.id].append(url)
-                song = await bot.voice_client_in(con.message.server).create_ytdl_player(song_names[con.message.server.id][0], ytdl_options=opts, after=lambda: bot.loop.create_task(after_song(con, False, False)))
+                song = await bot.voice_client_in(con.message.server).create_ytdl_player(song_names[con.message.server.id][0], ytdl_options=opts, after=lambda: await after_song(con, False, False))
                 servers_songs[con.message.server.id] = song
                 servers_songs[con.message.server.id].start()
-                r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key=AIzaSyDy4gizNmXYWykfUACzU_RsaHtKVvuZb9k'.format(url)).json()
+                r = rq.Session().get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q={}&key={}'.format(url,youtube_api)).json()
                 pack = discord.Embed(title=r['items'][0]['snippet']['title'],
                                      url="https://www.youtube.com/watch?v={}".format(r['items'][0]['id']['videoId']))
                 pack.set_thumbnail(
@@ -190,7 +187,7 @@ async def skip(con):
         if servers_songs[con.message.server.id] == None or len(song_names[con.message.server.id]) == 0 or player_status[con.message.server.id] == False:
             await bot.send_message(con.message.channel, "**No songs in queue to skip**")
         if servers_songs[con.message.server.id] != None:
-            bot.loop.create_task(queue_songs(con, True, False))
+            await queue_songs(con, True, False)
 
 @bot.command(pass_context=True)
 async def join(con,*,channel=None):
@@ -242,7 +239,7 @@ async def leave(con):
 
         # VOICE ALREADY CONNECTED
         if bot.is_voice_connected(con.message.server) == True:
-            bot.loop.create_task(queue_songs(con, False, True))
+            await queue_songs(con, False, True)
 
 @bot.command(pass_context=True)
 async def pause(con):
@@ -258,7 +255,6 @@ async def pause(con):
             if paused[con.message.server.id] == False:
                 servers_songs[con.message.server.id].pause()
                 paused[con.message.server.id] = True
-
 
 
 
@@ -286,67 +282,11 @@ async def volume(con,vol:float):
         await bot.send_message(con.message.channel,"No Audio playing at the moment")
     if player_status[con.message.server.id] == True:
         servers_songs[con.message.server.id].volume =vol;
-        
-        
-        
-        
-@bot.command()
-async def invite():
-  	"""Bot Invite"""
-  	await bot.say("\U0001f44d")
-  	await bot.whisper("Add me with this link {}".format(discord.utils.oauth_url(bot.user.id)))
-
-@bot.event
-async def send_cmd_help(ctx):
-    if ctx.invoked_subcommand:
-        pages = bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
-        for page in pages:
-            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
-                               color=discord.Color.blue())
-            await bot.send_message(ctx.message.channel, embed=em)
-    else:
-        pages = bot.formatter.format_help_for(ctx, ctx.command)
-        for page in pages:
-            em = discord.Embed(description=page.strip("```").replace('<', '[').replace('>', ']'),
-                               color=discord.Color.blue())
-            await bot.send_message(ctx.message.channel, embed=em)        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
 
 
-@bot.command(pass_context=True)
-async def embed(ctx):
-    embed = discord.Embed(title="test", description="my name imran", color=0x00ff00)
-    embed.set_footer(text="this is a footer")
-    embed.set_author(name="Team Ghost")
-    embed.add_field(name="This is a field", value="no it isn't", inline=True)
-    await bot.say(embed=embed)
-    
-    
-    
-    
-    
 
-# if __name__ == "__main__":
-#     for extension in extensions:
-#         try:
-#             bot.load_extension(extension)
-#             print("{} loaded".format(extension))
-#         except Exception as error:
-#             print("Unable to load extension {} error {}".format(extension, error))
+
+
 
 
 bot.run(os.environ['BOT_TOKEN']) #do not post your bot token publically 
